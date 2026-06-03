@@ -1,13 +1,155 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
+// Configuración del generador de Prisma Client
+// Esto genera el código que usaremos para hablar con la base de datos
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
+// Configuración de la base de datos
+// Lee la URL de conexión desde el archivo .env
+// Con Prisma 7 la URL se configura en prisma.config.ts
+// Aquí solo declaramos el proveedor
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────
+// TABLA: User (Administradores del sistema)
+// Solo las personas con acceso al panel admin
+// ─────────────────────────────────────────
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Guardada con hash, nunca en texto plano
+  name      String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
+// TABLA: Category (Categorías de perfumes)
+// Ejemplos: Damas, Caballeros, Unisex, Edición Limitada
+// ─────────────────────────────────────────
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique // URL amigable: "damas", "caballeros"
+  createdAt DateTime  @default(now())
+  products  Product[] // Una categoría tiene muchos productos
+}
+
+// ─────────────────────────────────────────
+// TABLA: Product (Perfumes)
+// Cada perfume con toda su información
+// ─────────────────────────────────────────
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String
+  description String
+  price       Float    // Precio de venta al cliente
+  cost        Float    // Costo del producto (solo visible en admin)
+  stock       Int      @default(0)
+  images      String[] // Lista de URLs de imágenes en Cloudinary
+  active      Boolean  @default(true) // Si está visible en la tienda
+  featured    Boolean  @default(false) // Si aparece en la sección destacada
+  sold        Int      @default(0) // Contador de unidades vendidas
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems        OrderItem[]
+  inventoryMovements InventoryMovement[]
+}
+
+// ─────────────────────────────────────────
+// TABLA: Customer (Clientes)
+// Datos de quien realiza una compra
+// ─────────────────────────────────────────
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  address   String
+  createdAt DateTime @default(now())
+  orders    Order[]  // Un cliente puede tener varios pedidos
+}
+
+// ─────────────────────────────────────────
+// TABLA: Order (Pedidos)
+// Cada pedido generado desde el carrito
+// ─────────────────────────────────────────
+model Order {
+  id         String      @id @default(cuid())
+  orderNumber String     @unique // Número legible: TP-0001, TP-0002...
+  status     OrderStatus @default(SOLICITADO)
+  total      Float
+  notes      String?     // Notas opcionales del vendedor
+
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+
+  items      OrderItem[] // Los productos dentro del pedido
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+// ─────────────────────────────────────────
+// ENUM: OrderStatus (Estados del pedido)
+// Solo estos valores son válidos
+// ─────────────────────────────────────────
+enum OrderStatus {
+  SOLICITADO  // Cuando el cliente envía el pedido por WhatsApp
+  COMPLETADO  // Cuando el vendedor confirma la venta (descuenta stock)
+  CANCELADO   // Cuando la venta no se concreta
+}
+
+// ─────────────────────────────────────────
+// TABLA: OrderItem (Productos dentro de un pedido)
+// Guarda qué productos y en qué cantidad tiene cada pedido
+// ─────────────────────────────────────────
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  price     Float   // Precio al momento de la compra (por si cambia después)
+
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+// ─────────────────────────────────────────
+// TABLA: InventoryMovement (Historial de inventario)
+// Registra cada cambio en el stock de un producto
+// ─────────────────────────────────────────
+model InventoryMovement {
+  id        String        @id @default(cuid())
+  type      MovementType  // Tipo de movimiento
+  quantity  Int           // Positivo = entrada, Negativo = salida
+  reason    String        // Descripción del motivo
+  createdAt DateTime      @default(now())
+
+  productId String
+  product   Product       @relation(fields: [productId], references: [id])
+
+  // Referencia opcional al pedido que generó el movimiento
+  orderId   String?
+}
+
+// ─────────────────────────────────────────
+// ENUM: MovementType (Tipos de movimiento de inventario)
+// ─────────────────────────────────────────
+enum MovementType {
+  ENTRADA    // Se agregó mercancía
+  VENTA      // Se descontó por una venta completada
+  AJUSTE     // Ajuste manual del administrador
+  CANCELACION // Se devolvió stock por pedido cancelado
 }
