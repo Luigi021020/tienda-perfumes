@@ -153,3 +153,18 @@ enum MovementType {
   AJUSTE     // Ajuste manual del administrador
   CANCELACION // Se devolvió stock por pedido cancelado
 }
+
+// ─────────────────────────────────────────
+// TABLA: StoreConfig (Configuración de la tienda)
+// Permite al administrador personalizar la tienda
+// sin tocar el código
+// ─────────────────────────────────────────
+model StoreConfig {
+  id          String  @id @default(cuid())
+  storeName   String  @default("R&B Perfumes")
+  logoUrl     String? // URL del logo en Cloudinary
+  whatsapp    String  @default("521XXXXXXXXXX")
+  email       String  @default("")
+  slogan      String  @default("Cada esencia cuenta una historia")
+  updatedAt   DateTime @updatedAt
+}
