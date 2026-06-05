@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/prisma";
 import HeaderTienda from "@/components/store/HeaderTienda";
+import BotonWhatsApp from "@/components/store/BotonWhatsApp";
 
 export default async function StoreLayout({
   children,
@@ -83,6 +84,10 @@ export default async function StoreLayout({
 
         </div>
       </footer>
+      {/* Boton flotante de WhatsApp */}
+      {config?.whatsapp && (
+        <BotonWhatsApp whatsapp={config.whatsapp} />
+      )}
     </div>
   );
 }

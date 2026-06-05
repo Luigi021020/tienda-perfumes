@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { useCarrito } from "@/lib/useCarrito";
 import { useState, useEffect } from "react";
+import { ShoppingBag } from "lucide-react";
 
 type Config = {
   storeName: string;
@@ -87,11 +88,11 @@ export default function HeaderTienda({ config, anuncios }: { config: Config; anu
           <div className="flex items-center gap-3">
 
             {/* Carrito */}
-            <Link
+           <Link
               href="/carrito"
               className="relative flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 px-4 py-2 rounded transition-colors"
             >
-              <span className="text-lg">🛒</span>
+              <ShoppingBag size={18} className="text-white" />
               <span className="text-sm text-white hidden sm:block">Carrito</span>
               {cantidadTotal > 0 && (
                 <span className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">

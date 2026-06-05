@@ -12,6 +12,7 @@ type Producto = {
   name: string;
   brand: string;
   price: number;
+  comparePrice?: number | null;
   stock: number;
   images: string[];
   category: { name: string };
@@ -72,10 +73,24 @@ export default function TarjetaProducto({ producto }: { producto: Producto }) {
         </Link>
         <p className="text-xs text-zinc-600 mb-3">{producto.category.name}</p>
 
-        <div className="flex justify-between items-center">
-          <span className="text-yellow-500 font-bold text-lg">
-            ${producto.price.toLocaleString("es-MX")}
-          </span>
+<div className="flex justify-between items-center">
+          <div>
+            {producto.comparePrice && producto.comparePrice > producto.price ? (
+              <div>
+                <span className="text-zinc-500 text-xs line-through block">
+                  ${producto.comparePrice.toLocaleString("es-MX")}
+                </span>
+                <span className="text-yellow-500 font-bold text-lg">
+                  ${producto.price.toLocaleString("es-MX")}
+                </span>
+              </div>
+            ) : (
+              <span className="text-yellow-500 font-bold text-lg">
+                ${producto.price.toLocaleString("es-MX")}
+              </span>
+            )}
+          </div>
+          
           <button
             onClick={agregarAlCarrito}
             disabled={producto.stock === 0}
