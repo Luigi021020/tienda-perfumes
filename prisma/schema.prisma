@@ -45,17 +45,18 @@ model Category {
 // Cada perfume con toda su información
 // ─────────────────────────────────────────
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  brand       String
-  description String
-  price       Float    // Precio de venta al cliente
-  cost        Float    // Costo del producto (solo visible en admin)
-  stock       Int      @default(0)
-  images      String[] // Lista de URLs de imágenes en Cloudinary
-  active      Boolean  @default(true) // Si está visible en la tienda
-  featured    Boolean  @default(false) // Si aparece en la sección destacada
-  sold        Int      @default(0) // Contador de unidades vendidas
+  id           String   @id @default(cuid())
+  name         String
+  brand        String
+  description  String
+  price        Float    // Precio de venta al cliente
+  cost         Float    // Costo del producto (solo visible en admin)
+  comparePrice Float?    // Precio original tachado (opcional, para ofertas)
+  stock        Int      @default(0)
+  images       String[] // Lista de URLs de imágenes en Cloudinary
+  active       Boolean  @default(true) // Si está visible en la tienda
+  featured     Boolean  @default(false) // Si aparece en la sección destacada
+  sold         Int      @default(0) // Contador de unidades vendidas
 
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
@@ -167,4 +168,17 @@ model StoreConfig {
   email       String  @default("")
   slogan      String  @default("Cada esencia cuenta una historia")
   updatedAt   DateTime @updatedAt
+}
+// ─────────────────────────────────────────
+// TABLA: Announcement (Anuncios de la barra superior)
+// El administrador puede crear anuncios que rotan
+// en la barra de la tienda
+// ─────────────────────────────────────────
+model Announcement {
+  id        String   @id @default(cuid())
+  text      String   // Texto del anuncio
+  active    Boolean  @default(true) // Si se muestra o no
+  order     Int      @default(0) // Orden de aparicion
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

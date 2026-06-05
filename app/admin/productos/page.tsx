@@ -33,11 +33,12 @@ export default function ProductosPage() {
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null);
 
   // Estado del formulario
-  const [form, setForm] = useState({
+const [form, setForm] = useState({
     name: "",
     brand: "",
     description: "",
     price: "",
+    comparePrice: "", // Precio de oferta opcional
     cost: "",
     stock: "",
     categoryId: "",
@@ -90,6 +91,7 @@ export default function ProductosPage() {
       active: producto.active,
       featured: producto.featured,
       images: producto.images,
+      comparePrice: producto.comparePrice?.toString() ?? "",
     });
     setModalAbierto(true);
   }
@@ -287,14 +289,26 @@ export default function ProductosPage() {
               </div>
 
               {/* Precio, Costo y Stock */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-1">Precio</label>
+                  <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-1">Precio normal</label>
                   <input
                     type="number"
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
                     className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-1">
+                    Precio de oferta <span className="text-zinc-600">(opcional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={form.comparePrice}
+                    onChange={(e) => setForm({ ...form, comparePrice: e.target.value })}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                    placeholder="Dejar vacio si no hay oferta"
                   />
                 </div>
                 <div>
