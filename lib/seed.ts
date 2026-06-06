@@ -1,52 +1,92 @@
-// Script para crear el usuario administrador inicial
-// Solo se ejecuta una vez para configurar el sistema
+// Script para actualizar las categorías con estructura jerárquica
+// Categorías padre → subcategorías hijo
 
 import { prisma } from "./prisma";
-import bcrypt from "bcryptjs";
-
 async function main() {
-  // Encriptar la contraseña antes de guardarla
-  const hashedPassword = await bcrypt.hash("admin123", 10);
 
-  // Crear el usuario administrador
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@tienda.com" },
-    update: {},
-    create: {
-      email: "admin@tienda.com",
-      password: hashedPassword,
-      name: "Administrador",
-      role: "ADMIN",
-    },
+// Eliminar categorias viejas que no tienen la estructura correcta
+  const categoriasViejas = ["damas", "caballeros", "set-damas", "set-caballeros", "arabes-damas", "arabes-caballeros", "unisex", "edicion-limitada"];
+  
+  for (const slug of categoriasViejas) {
+    try {
+      await prisma.category.deleteMany({
+        where: { slug },
+      });
+    } catch (e) {
+      console.log("No se pudo eliminar:", slug);
+    }
+  }
+  console.log("Categorias viejas eliminadas");
+
+  // Primero eliminamos las categorías existentes
+  // (primero productos deben estar sin categoría o usar la nueva)
+  console.log("Actualizando categorias...");
+
+  // Crear categorías padre
+  const arabes = await prisma.category.upsert({
+    where: { slug: "arabes" },
+    update: { name: "Arabes", order: 1, parentId: null },
+    create: { name: "Arabes", slug: "arabes", order: 1, parentId: null },
   });
 
-  console.log("✅ Usuario administrador creado:", admin.email);
+  const disenador = await prisma.category.upsert({
+    where: { slug: "disenador" },
+    update: { name: "Disenador", order: 2, parentId: null },
+    create: { name: "Disenador", slug: "disenador", order: 2, parentId: null },
+  });
 
-  // Crear categorías iniciales
-  const categorias = [
-    { name: "Damas", slug: "damas" },
-    { name: "Caballeros", slug: "caballeros" },
-    { name: "Set Damas", slug: "set-damas" },
-    { name: "Set Caballeros", slug: "set-caballeros" },
-    { name: "Arabes Damas", slug: "arabe-damas" },
-    { name: "Arabes Caballeros", slug: "arabe-caballeros" },
-  ];
+  const sets = await prisma.category.upsert({
+    where: { slug: "sets" },
+    update: { name: "Sets", order: 3, parentId: null },
+    create: { name: "Sets", slug: "sets", order: 3, parentId: null },
+  });
 
-  for (const categoria of categorias) {
-    await prisma.category.upsert({
-      where: { slug: categoria.slug },
-      update: {},
-      create: categoria,
-    });
-    console.log("✅ Categoría creada:", categoria.name);
-  }
+  console.log("Categorias padre creadas");
 
-  console.log("🎉 Base de datos lista para usar");
+  // Crear subcategorías
+  await prisma.category.upsert({
+    where: { slug: "arabes-caballero" },
+    update: { name: "Arabes Caballero", order: 1, parentId: arabes.id },
+    create: { name: "Arabes Caballero", slug: "arabes-caballero", order: 1, parentId: arabes.id },
+  });
+
+  await prisma.category.upsert({
+    where: { slug: "arabes-dama" },
+    update: { name: "Arabes Dama", order: 2, parentId: arabes.id },
+    create: { name: "Arabes Dama", slug: "arabes-dama", order: 2, parentId: arabes.id },
+  });
+
+  await prisma.category.upsert({
+    where: { slug: "disenador-caballero" },
+    update: { name: "Disenador Caballero", order: 1, parentId: disenador.id },
+    create: { name: "Disenador Caballero", slug: "disenador-caballero", order: 1, parentId: disenador.id },
+  });
+
+  await prisma.category.upsert({
+    where: { slug: "disenador-dama" },
+    update: { name: "Disenador Dama", order: 2, parentId: disenador.id },
+    create: { name: "Disenador Dama", slug: "disenador-dama", order: 2, parentId: disenador.id },
+  });
+
+  await prisma.category.upsert({
+    where: { slug: "sets-caballero" },
+    update: { name: "Sets Caballero", order: 1, parentId: sets.id },
+    create: { name: "Sets Caballero", slug: "sets-caballero", order: 1, parentId: sets.id },
+  });
+
+  await prisma.category.upsert({
+    where: { slug: "sets-dama" },
+    update: { name: "Sets Dama", order: 2, parentId: sets.id },
+    create: { name: "Sets Dama", slug: "sets-dama", order: 2, parentId: sets.id },
+  });
+
+  console.log("Subcategorias creadas");
+  console.log("Categorias actualizadas exitosamente");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error:", e);
+    console.error("Error:", e);
     process.exit(1);
   })
   .finally(async () => {

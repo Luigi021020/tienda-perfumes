@@ -10,18 +10,27 @@ export default async function StoreLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Obtener configuracion y anuncios
-  const [config, anuncios] = await Promise.all([
+ // Obtener configuracion, anuncios y categorias padre con sus hijos
+  const [config, anuncios, categorias] = await Promise.all([
     prisma.storeConfig.findFirst(),
     prisma.announcement.findMany({
       where: { active: true },
       orderBy: { order: "asc" },
     }),
+    prisma.category.findMany({
+      where: { parentId: null }, // Solo categorias padre
+      orderBy: { order: "asc" },
+      include: {
+        children: {
+          orderBy: { order: "asc" },
+        },
+      },
+    }),
   ]);
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <HeaderTienda config={config} anuncios={anuncios} />
+      <HeaderTienda config={config} anuncios={anuncios} categorias={categorias} />
       <main>{children}</main>
 
       {/* Footer */}

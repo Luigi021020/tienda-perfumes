@@ -1,5 +1,5 @@
 // Header de la tienda publica
-// Incluye barra de anuncios rotativa y navegacion principal
+// Incluye barra de anuncios rotativa y navegacion con categorias en cascada
 
 "use client";
 
@@ -20,12 +20,31 @@ type Anuncio = {
   active: boolean;
 };
 
-export default function HeaderTienda({ config, anuncios }: { config: Config; anuncios: Anuncio[] }) {
+type Categoria = {
+  id: string;
+  name: string;
+  slug: string;
+  children: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+};
+
+export default function HeaderTienda({
+  config,
+  anuncios,
+  categorias,
+}: {
+  config: Config;
+  anuncios: Anuncio[];
+  categorias: Categoria[];
+}) {
   const cantidadTotal = useCarrito((s) => s.cantidadTotal());
   const [anuncioActivo, setAnuncioActivo] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [categoriaActiva, setCategoriaActiva] = useState<string | null>(null);
 
-  // Anuncios activos unicamente
   const anunciosActivos = anuncios.filter((a) => a.active);
 
   // Rotar anuncios cada 3 segundos
@@ -41,10 +60,8 @@ export default function HeaderTienda({ config, anuncios }: { config: Config; anu
     <>
       {/* Barra de anuncios */}
       {anunciosActivos.length > 0 && (
-        <div className="bg-yellow-500 text-black py-2 px-4 text-center text-xs font-bold uppercase tracking-widest overflow-hidden">
-          <div className="transition-all duration-500">
-            {anunciosActivos[anuncioActivo]?.text}
-          </div>
+        <div className="bg-yellow-500 text-black py-2 px-4 text-center text-xs font-bold uppercase tracking-widest">
+          {anunciosActivos[anuncioActivo]?.text}
         </div>
       )}
 
@@ -53,7 +70,7 @@ export default function HeaderTienda({ config, anuncios }: { config: Config; anu
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 
           {/* Logo */}
-          <Link href="/" className="flex flex-col">
+          <Link href="/" className="flex-shrink-0">
             {config?.logoUrl ? (
               <img
                 src={config.logoUrl}
@@ -69,26 +86,58 @@ export default function HeaderTienda({ config, anuncios }: { config: Config; anu
           </Link>
 
           {/* Navegacion escritorio */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider transition-colors">
+          <nav className="hidden md:flex items-center gap-1">
+
+            <Link href="/" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider px-3 py-2 transition-colors">
               Inicio
             </Link>
-            <Link href="/catalogo" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider transition-colors">
-              Catalogo
-            </Link>
-            <Link href="/nosotros" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider transition-colors">
+
+            {/* Menu de categorias con cascada */}
+            {categorias.map((cat) => (
+              <div
+                key={cat.id}
+                className="relative"
+                onMouseEnter={() => setCategoriaActiva(cat.id)}
+                onMouseLeave={() => setCategoriaActiva(null)}
+              >
+                <Link
+                  href={"/catalogo?categoria=" + cat.slug}
+                  className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider px-3 py-2 transition-colors flex items-center gap-1"
+                >
+                  {cat.name}
+                  {cat.children.length > 0 && (
+                    <span className="text-xs text-zinc-600">▾</span>
+                  )}
+                </Link>
+
+                {/* Dropdown de subcategorias */}
+                {cat.children.length > 0 && categoriaActiva === cat.id && (
+                  <div className="absolute top-full left-0 bg-zinc-900 border border-zinc-800 min-w-48 py-2 shadow-xl z-50">
+                    {cat.children.map((sub) => (
+                      <Link
+                        key={sub.id}
+                        href={"/catalogo?categoria=" + sub.slug}
+                        className="block px-4 py-2 text-sm text-zinc-400 hover:text-yellow-500 hover:bg-zinc-800 uppercase tracking-wider transition-colors"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <Link href="/nosotros" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider px-3 py-2 transition-colors">
               Nosotros
             </Link>
-            <Link href="/faq" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider transition-colors">
+            <Link href="/faq" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider px-3 py-2 transition-colors">
               FAQ
             </Link>
           </nav>
 
           {/* Carrito y menu movil */}
           <div className="flex items-center gap-3">
-
-            {/* Carrito */}
-           <Link
+            <Link
               href="/carrito"
               className="relative flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 px-4 py-2 rounded transition-colors"
             >
@@ -104,48 +153,58 @@ export default function HeaderTienda({ config, anuncios }: { config: Config; anu
             {/* Boton menu movil */}
             <button
               onClick={() => setMenuAbierto(!menuAbierto)}
-              className="md:hidden text-zinc-400 hover:text-white p-2"
+              className="md:hidden text-zinc-400 hover:text-white p-2 text-xl"
             >
               {menuAbierto ? "✕" : "☰"}
             </button>
-
           </div>
         </div>
 
-        {/* Menu movil desplegable */}
+        {/* Menu movil */}
         {menuAbierto && (
-          <div className="md:hidden bg-zinc-950 border-t border-zinc-800 px-4 py-4 space-y-3">
-            <Link
-              href="/"
-              onClick={() => setMenuAbierto(false)}
-              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-2 border-b border-zinc-800"
-            >
+          <div className="md:hidden bg-zinc-950 border-t border-zinc-800 px-4 py-4">
+            <Link href="/" onClick={() => setMenuAbierto(false)}
+              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-3 border-b border-zinc-800">
               Inicio
             </Link>
-            <Link
-              href="/catalogo"
-              onClick={() => setMenuAbierto(false)}
-              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-2 border-b border-zinc-800"
-            >
-              Catalogo
-            </Link>
-            <Link
-              href="/nosotros"
-              onClick={() => setMenuAbierto(false)}
-              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-2 border-b border-zinc-800"
-            >
+
+            {/* Categorias en movil */}
+            {categorias.map((cat) => (
+              <div key={cat.id}>
+                <button
+                  onClick={() => setCategoriaActiva(categoriaActiva === cat.id ? null : cat.id)}
+                  className="w-full flex justify-between items-center text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-3 border-b border-zinc-800"
+                >
+                  {cat.name}
+                  <span className="text-zinc-600">{categoriaActiva === cat.id ? "▲" : "▾"}</span>
+                </button>
+                {categoriaActiva === cat.id && cat.children.length > 0 && (
+                  <div className="pl-4 py-2 space-y-2">
+                    {cat.children.map((sub) => (
+                      <Link
+                        key={sub.id}
+                        href={"/catalogo?categoria=" + sub.slug}
+                        onClick={() => setMenuAbierto(false)}
+                        className="block text-zinc-500 hover:text-yellow-500 text-sm uppercase tracking-wider py-1"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <Link href="/nosotros" onClick={() => setMenuAbierto(false)}
+              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-3 border-b border-zinc-800">
               Nosotros
             </Link>
-            <Link
-              href="/faq"
-              onClick={() => setMenuAbierto(false)}
-              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-2"
-            >
+            <Link href="/faq" onClick={() => setMenuAbierto(false)}
+              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-3">
               FAQ
             </Link>
           </div>
         )}
-
       </header>
     </>
   );

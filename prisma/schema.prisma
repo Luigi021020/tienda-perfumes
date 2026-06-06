@@ -29,15 +29,24 @@ model User {
 }
 
 // ─────────────────────────────────────────
-// TABLA: Category (Categorías de perfumes)
-// Ejemplos: Damas, Caballeros, Unisex, Edición Limitada
+// TABLA: Category (Categorías de productos)
+// Soporta jerarquía: categoría padre → subcategorías
+// Ejemplo: Arabes → Caballero, Arabes → Dama
 // ─────────────────────────────────────────
 model Category {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  slug      String    @unique // URL amigable: "damas", "caballeros"
-  createdAt DateTime  @default(now())
-  products  Product[] // Una categoría tiene muchos productos
+  id        String     @id @default(cuid())
+  name      String     
+  slug      String     @unique
+  parentId  String?    // null = categoria principal, valor = subcategoria
+  order     Int        @default(0) // Orden de aparicion en el menu
+
+  // Relacion con categoria padre
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  // Relacion con subcategorias hijas
+  children  Category[] @relation("CategoryTree")
+
+  createdAt DateTime   @default(now())
+  products  Product[]
 }
 
 // ─────────────────────────────────────────
