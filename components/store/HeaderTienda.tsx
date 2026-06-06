@@ -60,10 +60,17 @@ export default function HeaderTienda({
     <>
       {/* Barra de anuncios */}
       {anunciosActivos.length > 0 && (
-        <div className="bg-yellow-500 text-black py-2 px-4 text-center text-xs font-bold uppercase tracking-widest">
-          {anunciosActivos[anuncioActivo]?.text}
+      <div className="bg-yellow-500 text-black py-2 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap">
+          {/* Repetimos los anuncios para que el scroll sea continuo */}
+          {[...anunciosActivos, ...anunciosActivos].map((anuncio, i) => (
+            <span key={i} className="text-xs font-bold uppercase tracking-widest mx-12">
+              ✦ {anuncio.text}
+            </span>
+          ))}
         </div>
-      )}
+      </div>
+    )}
 
       {/* Header principal */}
       <header className="bg-black border-b border-zinc-800 sticky top-0 z-40">

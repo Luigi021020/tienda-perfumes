@@ -17,6 +17,23 @@ type ItemVenta = {
   precio: number;
   cantidad: number;
   stock: number;
+  imagen: string;
+};
+
+type VentaDelDia = {
+  id: string;
+  orderNumber: string;
+  total: number;
+  notes: string | null;
+  items: {
+    quantity: number;
+    price: number;
+    product: {
+      name: string;
+      brand: string;
+      images: string[];
+    };
+  }[];
 };
 
 export default function VentasExternasPage() {
@@ -26,6 +43,7 @@ export default function VentasExternasPage() {
   const [mensaje, setMensaje] = useState("");
   const [items, setItems] = useState<ItemVenta[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const [ventasHoy, setVentasHoy] = useState<VentaDelDia[]>([]);
   const [form, setForm] = useState({
     customerName: "",
     customerPhone: "",
@@ -35,6 +53,7 @@ export default function VentasExternasPage() {
 
   useEffect(() => {
     cargarProductos();
+    cargarVentasHoy();
   }, []);
 
   async function cargarProductos() {
@@ -45,11 +64,22 @@ export default function VentasExternasPage() {
     setLoading(false);
   }
 
-  const productosFiltrados = productos.filter(
-    (p) =>
-      p.name.toLowerCase().includes(busqueda.toLowerCase()) ||
-      p.brand.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  async function cargarVentasHoy() {
+    const res = await fetch("/api/ventas-externas/hoy");
+    if (res.ok) {
+      const data = await res.json();
+      setVentasHoy(data);
+    }
+  }
+
+  // Solo mostrar productos cuando hay busqueda
+  const productosFiltrados = busqueda.length >= 2
+    ? productos.filter(
+        (p) =>
+          p.name.toLowerCase().includes(busqueda.toLowerCase()) ||
+          p.brand.toLowerCase().includes(busqueda.toLowerCase())
+      )
+    : [];
 
   function agregarProducto(producto: Producto) {
     const existente = items.find((i) => i.productId === producto.id);
@@ -66,8 +96,10 @@ export default function VentasExternasPage() {
         precio: producto.price,
         cantidad: 1,
         stock: producto.stock,
+        imagen: producto.images[0] ?? "",
       }]);
     }
+    setBusqueda("");
   }
 
   function cambiarCantidad(productId: string, cantidad: number) {
@@ -83,6 +115,9 @@ export default function VentasExternasPage() {
   }
 
   const total = items.reduce((sum, i) => sum + i.precio * i.cantidad, 0);
+
+  // Total de ventas externas del dia
+  const totalVentasHoy = ventasHoy.reduce((sum, v) => sum + v.total, 0);
 
   async function registrarVenta() {
     if (items.length === 0) { setMensaje("Agrega al menos un producto"); return; }
@@ -104,6 +139,7 @@ export default function VentasExternasPage() {
       setItems([]);
       setForm({ customerName: "", customerPhone: "", canal: "PRESENCIAL", notes: "" });
       cargarProductos();
+      cargarVentasHoy();
     } else {
       const error = await res.json();
       setMensaje("Error: " + error.error);
@@ -121,6 +157,7 @@ export default function VentasExternasPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
+        {/* Panel izquierdo */}
         <div className="space-y-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
             <h3 className="text-sm uppercase tracking-wider text-zinc-400 mb-3">Buscar producto</h3>
@@ -128,36 +165,48 @@ export default function VentasExternasPage() {
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Nombre o marca..."
+              placeholder="Escribe el nombre o marca para buscar..."
               className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500 mb-3"
             />
-            {loading ? (
-              <p className="text-zinc-500 text-sm">Cargando...</p>
-            ) : (
+
+            {/* Solo mostrar resultados cuando hay busqueda */}
+            {busqueda.length >= 2 && (
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {productosFiltrados.map((producto) => (
-                  <div key={producto.id} className="flex justify-between items-center bg-zinc-800 rounded p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-zinc-700 rounded overflow-hidden flex-shrink-0">
-                        {producto.images[0] && <img src={producto.images[0]} alt="" className="w-full h-full object-cover" />}
+                {productosFiltrados.length === 0 ? (
+                  <p className="text-zinc-500 text-sm text-center py-4">No se encontraron productos</p>
+                ) : (
+                  productosFiltrados.map((producto) => (
+                    <div key={producto.id} className="flex justify-between items-center bg-zinc-800 rounded p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-zinc-700 rounded overflow-hidden flex-shrink-0">
+                          {producto.images[0] && <img src={producto.images[0]} alt="" className="w-full h-full object-cover" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{producto.name}</p>
+                          <p className="text-xs text-zinc-500">{producto.brand} · Stock: {producto.stock}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">{producto.name}</p>
-                        <p className="text-xs text-zinc-500">{producto.brand} · Stock: {producto.stock}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-500 text-sm font-bold">${producto.price.toLocaleString("es-MX")}</span>
+                        <button onClick={() => agregarProducto(producto)} className="bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded transition-colors">
+                          + Agregar
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-yellow-500 text-sm font-bold">${producto.price.toLocaleString("es-MX")}</span>
-                      <button onClick={() => agregarProducto(producto)} className="bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded transition-colors">
-                        + Agregar
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
+            )}
+
+            {busqueda.length === 0 && (
+              <p className="text-zinc-600 text-xs text-center py-2">Escribe al menos 2 caracteres para buscar</p>
+            )}
+            {busqueda.length === 1 && (
+              <p className="text-zinc-600 text-xs text-center py-2">Escribe un caracter mas para buscar</p>
             )}
           </div>
 
+          {/* Datos del cliente */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
             <h3 className="text-sm uppercase tracking-wider text-zinc-400">Datos del cliente</h3>
             <div>
@@ -188,18 +237,26 @@ export default function VentasExternasPage() {
           </div>
         </div>
 
-        <div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 sticky top-24">
+        {/* Panel derecho */}
+        <div className="space-y-4">
+
+          {/* Resumen de la venta actual */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
             <h3 className="text-sm uppercase tracking-wider text-zinc-400 mb-4">Resumen de la venta</h3>
             {items.length === 0 ? (
-              <p className="text-zinc-600 text-sm py-8 text-center">Agrega productos desde el panel izquierdo</p>
+              <p className="text-zinc-600 text-sm py-4 text-center">Agrega productos desde el panel izquierdo</p>
             ) : (
               <div className="space-y-3 mb-4">
                 {items.map((item) => (
                   <div key={item.productId} className="flex justify-between items-center bg-zinc-800 rounded p-3">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{item.nombre}</p>
-                      <p className="text-xs text-zinc-500">${item.precio.toLocaleString("es-MX")} c/u</p>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-10 h-10 bg-zinc-700 rounded overflow-hidden flex-shrink-0">
+                        {item.imagen && <img src={item.imagen} alt="" className="w-full h-full object-cover" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{item.nombre}</p>
+                        <p className="text-xs text-zinc-500">${item.precio.toLocaleString("es-MX")} c/u</p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center border border-zinc-700">
@@ -231,13 +288,49 @@ export default function VentasExternasPage() {
               </>
             )}
             {mensaje && items.length === 0 && (
-              <div className={"p-3 rounded text-sm text-center mt-4 " + (mensaje.includes("Error") ? "bg-red-900 text-red-400" : "bg-green-900 text-green-400")}>
+              <div className={"p-3 rounded text-sm text-center " + (mensaje.includes("Error") ? "bg-red-900 text-red-400" : "bg-green-900 text-green-400")}>
                 {mensaje}
               </div>
             )}
           </div>
-        </div>
 
+          {/* Ventas externas del dia */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm uppercase tracking-wider text-zinc-400">Ventas externas de hoy</h3>
+              <span className="text-yellow-500 font-bold text-sm">
+                Total: ${totalVentasHoy.toLocaleString("es-MX")}
+              </span>
+            </div>
+            {ventasHoy.length === 0 ? (
+              <p className="text-zinc-600 text-sm text-center py-4">Sin ventas externas hoy</p>
+            ) : (
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {ventasHoy.map((venta) => (
+                  <div key={venta.id} className="bg-zinc-800 rounded p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-yellow-500 text-xs font-bold">{venta.orderNumber}</span>
+                      <span className="text-white font-bold text-sm">${venta.total.toLocaleString("es-MX")}</span>
+                    </div>
+                    {venta.items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 mt-1">
+                        <div className="w-8 h-8 bg-zinc-700 rounded overflow-hidden flex-shrink-0">
+                          {item.product.images[0] && <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs text-white">{item.product.name}</p>
+                          <p className="text-xs text-zinc-500">{item.product.brand} · x{item.quantity}</p>
+                        </div>
+                        <span className="text-xs text-zinc-400">${(item.price * item.quantity).toLocaleString("es-MX")}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   );
