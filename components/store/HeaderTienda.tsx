@@ -130,9 +130,6 @@ export default function HeaderTienda({
             <Link href="/nosotros" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider px-3 py-2 transition-colors">
               Nosotros
             </Link>
-            <Link href="/faq" className="text-zinc-400 hover:text-white text-sm uppercase tracking-wider px-3 py-2 transition-colors">
-              FAQ
-            </Link>
           </nav>
 
           {/* Carrito y menu movil */}
@@ -198,10 +195,6 @@ export default function HeaderTienda({
             <Link href="/nosotros" onClick={() => setMenuAbierto(false)}
               className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-3 border-b border-zinc-800">
               Nosotros
-            </Link>
-            <Link href="/faq" onClick={() => setMenuAbierto(false)}
-              className="block text-zinc-400 hover:text-white text-sm uppercase tracking-wider py-3">
-              FAQ
             </Link>
           </div>
         )}
