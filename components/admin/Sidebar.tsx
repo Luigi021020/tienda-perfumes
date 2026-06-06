@@ -13,6 +13,7 @@ const menuItems = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
   { href: "/admin/productos", label: "Productos", icon: "🧴" },
   { href: "/admin/pedidos", label: "Pedidos", icon: "📦" },
+  { href: "/admin/ventas", label: "Ventas Externas", icon: "💰" },
   { href: "/admin/inventario", label: "Inventario", icon: "📋" },
   { href: "/admin/clientes", label: "Clientes", icon: "👥" },
   { href: "/admin/configuracion", label: "Configuracion", icon: "⚙️" },
@@ -41,7 +42,9 @@ export default function Sidebar() {
         <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item) => {
             // Verificar si este elemento es la página actual
-            const isActive = pathname === item.href;
+           const isActive = item.href === "/admin" 
+  ? pathname === "/admin"
+  : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}

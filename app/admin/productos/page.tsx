@@ -23,6 +23,7 @@ type Producto = {
 type Categoria = {
   id: string;
   name: string;
+  parentId: string | null;
 };
 
 export default function ProductosPage() {
@@ -335,15 +336,25 @@ const [form, setForm] = useState({
               <div>
                 <label className="block text-zinc-400 text-xs uppercase tracking-wider mb-1">Categoria</label>
                 <select
-                  value={form.categoryId}
-                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
-                >
-                  {categorias.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
+                value={form.categoryId}
+                onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+               >
+              {categorias
+              .filter((cat) => cat.parentId === null)
+              .map((padre) => (
+              <optgroup key={padre.id} label={padre.name}>
+              {categorias
+              .filter((cat) => cat.parentId === padre.id)
+              .map((hijo) => (
+              <option key={hijo.id} value={hijo.id}>
+              {hijo.name}
+            </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+            </div>
 
               {/* Opciones */}
               <div className="flex gap-6">

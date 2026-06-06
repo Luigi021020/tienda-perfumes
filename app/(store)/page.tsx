@@ -27,7 +27,9 @@ export default async function HomePage() {
 
   // Obtener categorias
   const categorias = await prisma.category.findMany({
-    orderBy: { name: "asc" },
+    where: { parentId: null },
+    orderBy: { order: "asc" },
+    include: { children: { orderBy: { order: "asc" } } },
   });
 
   return (
@@ -71,15 +73,22 @@ export default async function HomePage() {
           Explorar por categoria
         </h2>
         <div className="flex flex-wrap justify-center gap-3">
-          {categorias.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/catalogo?categoria=${cat.slug}`}
-              className="border border-zinc-700 hover:border-yellow-500 text-zinc-400 hover:text-yellow-500 px-5 py-2 text-sm uppercase tracking-wider transition-colors"
-            >
-              {cat.name}
-            </Link>
-          ))}
+          {categorias.map((padre) => (
+  <div key={padre.id} className="flex flex-col items-center gap-2">
+    <span className="text-zinc-500 text-xs uppercase tracking-widest">{padre.name}</span>
+    <div className="flex gap-2">
+      {padre.children.map((hijo) => (
+        <Link
+          key={hijo.id}
+          href={"/catalogo?categoria=" + hijo.slug}
+          className="border border-zinc-700 hover:border-yellow-500 text-zinc-400 hover:text-yellow-500 px-4 py-2 text-xs uppercase tracking-wider transition-colors"
+        >
+          {hijo.name}
+        </Link>
+      ))}
+    </div>
+  </div>
+))}
         </div>
       </section>
 
