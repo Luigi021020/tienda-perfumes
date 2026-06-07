@@ -34,39 +34,52 @@ export default async function HomePage() {
 
   return (
     <div>
-
       {/* Banner principal */}
-      <section className="relative bg-zinc-950 py-24 px-4 text-center overflow-hidden">
-        {/* Decoracion de fondo */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-40 h-40 border border-yellow-500 rounded-full" />
-          <div className="absolute bottom-10 right-10 w-64 h-64 border border-yellow-500 rounded-full" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border border-yellow-500 rounded-full" />
-        </div>
+      <section className="relative bg-zinc-950 py-20 px-4 text-center overflow-hidden">
+
+        {/* Fondo con gradiente sutil */}
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 to-black opacity-80" />
+
+        {/* Lineas decorativas laterales */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-yellow-500 to-transparent opacity-30" />
+        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-yellow-500 to-transparent opacity-30" />
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <p className="text-yellow-500 text-xs uppercase tracking-widest mb-4">
-            Bienvenido a
-          </p>
-          <h1 className="text-5xl md:text-7xl font-bold text-white tracking-widest uppercase mb-4">
-            R&B
-          </h1>
-          <p className="text-zinc-400 text-lg tracking-widest uppercase mb-6">
-            Perfumes
-          </p>
+
+          {/* Logo reducido y limpio */}
+          <div className="animate-fade-in mb-6">
+            <img
+              src="https://res.cloudinary.com/dptktoiev/image/upload/w_1024,h_1024,q_100,f_png/v1780790440/ryb-perfumes/productos/lokju68rlcqf4xwyxtqu.png"
+              alt="R&B Perfumes"
+              width={160}
+              height={160}
+              className="h-28 md:h-36 w-auto object-contain mx-auto mix-blend-screen"
+            />
+          </div>
+
+          {/* Linea dorada */}
           <div className="w-16 h-0.5 bg-yellow-500 mx-auto mb-6" />
-          <p className="text-zinc-400 text-lg italic mb-8">
-            {config?.slogan ?? "Cada esencia cuenta una historia, y tu ahora eres parte de la nuestra"}
+
+          {/* Titulo principal */}
+          <h1 className="text-2xl md:text-4xl font-bold text-white tracking-wider mb-3 animate-fade-in">
+            Perfumes Arabes y de Disenador
+          </h1>
+
+          {/* Subtitulo */}
+          <p className="text-zinc-400 text-base md:text-lg mb-8 animate-fade-in">
+            Fragancias exclusivas para hombres y mujeres
           </p>
-          <Link
-            href="/catalogo"
-            className="inline-block bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-8 py-3 uppercase tracking-widest text-sm transition-colors"
+
+          {/* CTA */}
+          
+            <a href="/catalogo"
+            className="inline-block bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-10 py-3 uppercase tracking-widest text-sm transition-all hover:scale-105"
           >
             Ver catalogo
-          </Link>
+          </a>
+
         </div>
       </section>
-
       {/* Categorias */}
       <section className="py-12 px-4 max-w-7xl mx-auto">
         <h2 className="text-center text-xs uppercase tracking-widest text-zinc-500 mb-6">

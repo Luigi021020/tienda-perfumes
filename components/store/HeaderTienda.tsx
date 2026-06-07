@@ -78,18 +78,10 @@ export default function HeaderTienda({
 
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            {config?.logoUrl ? (
-              <img
-                src={config.logoUrl}
-                alt={config?.storeName ?? "R&B Perfumes"}
-                className="h-10 object-contain"
-              />
-            ) : (
-              <div>
-                <p className="text-yellow-500 font-bold text-xl tracking-widest uppercase leading-none">R&B</p>
-                <p className="text-zinc-400 text-xs tracking-widest uppercase">Perfumes</p>
-              </div>
-            )}
+            <div>
+              <p className="text-yellow-500 font-bold text-xl tracking-widest uppercase leading-none">R&B</p>
+              <p className="text-zinc-400 text-xs tracking-widest uppercase">Perfumes</p>
+            </div>
           </Link>
 
           {/* Navegacion escritorio */}
