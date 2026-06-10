@@ -12,6 +12,8 @@ import { signOut } from "next-auth/react";
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
   { href: "/admin/productos", label: "Productos", icon: "🧴" },
+  { href: "/admin/galeria", label: "Galeria", icon: "🖼️" },
+  { href: "/admin/importar", label: "Importar", icon: "📥" },
   { href: "/admin/pedidos", label: "Pedidos", icon: "📦" },
   { href: "/admin/ventas", label: "Ventas Externas", icon: "💰" },
   { href: "/admin/inventario", label: "Inventario", icon: "📋" },

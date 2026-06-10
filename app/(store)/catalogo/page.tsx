@@ -22,6 +22,7 @@ type Categoria = {
   id: string;
   name: string;
   slug: string;
+  parentId: string | null;
 };
 
 function CatalogoContenido() {
@@ -32,10 +33,19 @@ function CatalogoContenido() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
+  //const [categoriaFiltro, setCategoriaFiltro] = useState(categoriaParam ?? "");
   const [categoriaFiltro, setCategoriaFiltro] = useState(categoriaParam ?? "");
   const [orden, setOrden] = useState("default");
 
-  useEffect(() => {
+ //useEffect(() => {
+//  cargarDatos();
+//  }, []);
+// Actualizar filtro cuando cambia el parametro de la URL
+useEffect(() => {
+    setCategoriaFiltro(categoriaParam ?? "");
+  }, [categoriaParam]);
+
+useEffect(() => {
     cargarDatos();
   }, []);
 
@@ -53,15 +63,36 @@ function CatalogoContenido() {
   }
 
   // Filtrar y ordenar productos
-  const productosFiltrados = productos
+  //const productosFiltrados = productos
+  //  .filter((p) => {
+  //    const coincideBusqueda =
+  //      p.name.toLowerCase().includes(busqueda.toLowerCase()) ||
+  //      p.brand.toLowerCase().includes(busqueda.toLowerCase());
+  //    const coincideCategoria =
+  //      !categoriaFiltro || p.category.slug === categoriaFiltro;
+  //    return coincideBusqueda && coincideCategoria;
+  //  })
+
+   const productosFiltrados = productos
     .filter((p) => {
       const coincideBusqueda =
         p.name.toLowerCase().includes(busqueda.toLowerCase()) ||
         p.brand.toLowerCase().includes(busqueda.toLowerCase());
-      const coincideCategoria =
-        !categoriaFiltro || p.category.slug === categoriaFiltro;
+      
+      let coincideCategoria = true;
+      if (categoriaFiltro) {
+        // Verificar si coincide con la subcategoria directamente
+        const coincideSubcategoria = p.category.slug === categoriaFiltro;
+        // Verificar si coincide con la categoria padre
+        const coincidePadre = p.category.slug.startsWith(categoriaFiltro + "-") ||
+          categoriaFiltro === p.category.slug.split("-")[0];
+        coincideCategoria = coincideSubcategoria || coincidePadre;
+      }
+      
       return coincideBusqueda && coincideCategoria;
     })
+
+
     .sort((a, b) => {
       if (orden === "precio-asc") return a.price - b.price;
       if (orden === "precio-desc") return b.price - a.price;
@@ -97,9 +128,19 @@ function CatalogoContenido() {
           className="bg-zinc-900 border border-zinc-700 text-white rounded px-4 py-2 text-sm focus:outline-none focus:border-yellow-500"
         >
           <option value="">Todas las categorias</option>
-          {categorias.map((cat) => (
-            <option key={cat.id} value={cat.slug}>{cat.name}</option>
-          ))}
+          {categorias
+            .filter((cat) => cat.parentId === null)
+            .map((padre) => (
+              <optgroup key={padre.id} label={padre.name}>
+                {categorias
+                  .filter((cat) => cat.parentId === padre.id)
+                  .map((hijo) => (
+                    <option key={hijo.id} value={hijo.slug}>
+                      {hijo.name}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
         </select>
 
         {/* Ordenar */}
